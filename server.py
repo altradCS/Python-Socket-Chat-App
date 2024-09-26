@@ -30,7 +30,16 @@ def handle_client(conn, addr):
             print(f"[{addr}] {msg}")
             with clients_lock:
                 for c in clients:
-                    c.sendall(f"[{addr}] {msg}".encode(FORMAT))
+                    # Send messages from a client to other clients
+                    if c != conn:
+                        c.sendall(f"[{addr}] {msg}".encode(FORMAT))
+                    else:
+                        # Send a confirmation message to all clients
+                        confirmation_message = f"[SERVER] Message from {addr} successfully sent."
+                        
+                        c.sendall(confirmation_message.encode(FORMAT))
+
+
 
     finally:
         with clients_lock:
