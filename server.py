@@ -10,8 +10,8 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
-clients = set()
-clients_lock = threading.Lock()
+clients = set() 
+clients_lock = threading.Lock()  
 
 
 def handle_client(conn, addr):
@@ -28,25 +28,29 @@ def handle_client(conn, addr):
                 connected = False
 
             print(f"[{addr}] {msg}")
+
             with clients_lock:
                 for c in clients:
-                    c.sendall(f"[{addr}] {msg}".encode(FORMAT))
+                    if c != conn:
+                        c.sendall(f"[{addr}] {msg}".encode(FORMAT))
+                    else:
+                        confirmation_message = f"[SERVER] Your message was successfully sent to other clients."
+                        c.sendall(confirmation_message.encode(FORMAT))
 
     finally:
         with clients_lock:
-            clients.remove(conn)
-
-        conn.close()
+            clients.remove(conn)  
+        conn.close()  
 
 
 def start():
-    print('[SERVER STARTED]!')
-    server.listen()
+    print('[SERVER STARTED]! Listening for connections...')
+    server.listen()  
     while True:
-        conn, addr = server.accept()
+        conn, addr = server.accept()  
         with clients_lock:
-            clients.add(conn)
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
+            clients.add(conn) 
+        thread = threading.Thread(target=handle_client, args=(conn, addr))  
         thread.start()
 
 
