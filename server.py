@@ -73,9 +73,9 @@ def handle_private_message(sender_username, msg):
 def send_broadcast_message():
     """Allow server to send broadcast messages."""
     while True:
-        msg = input("[SERVER] Broadcast message: ")
+        msg = input("[SERVER] Broadcast message:")
         if msg != '':
-            broadcast_message(f"[SERVER]: {msg}", None)  # Broadcast from server
+            broadcast_message(f"\n[SERVER]: {msg}", None)  # Broadcast from server
 
 def start():
     print('[SERVER STARTED]!')

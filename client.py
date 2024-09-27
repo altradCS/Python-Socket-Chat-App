@@ -24,7 +24,7 @@ def receive_messages(client):
         try:
             msg = client.recv(1024).decode(FORMAT)
             if msg:
-                print(msg)  # Print incoming messages
+                print(f"{msg}", end='')  # Print incoming messages
         except Exception as e:
             print("Error receiving message:", e)
             break
