@@ -74,13 +74,14 @@ def send_broadcast_message():
     """Allow server to send broadcast messages."""
     while True:
         msg = input("[SERVER] Broadcast message: ")
-        broadcast_message(f"[SERVER: {msg}", None)  # Broadcast from server
+        if msg != '':
+            broadcast_message(f"[SERVER]: {msg}", None)  # Broadcast from server
 
 def start():
     print('[SERVER STARTED]!')
 
     broadcast_thread = threading.Thread(target=send_broadcast_message)
-    broadcast_thread.daemon = True
+    
     broadcast_thread.start()
 
     server.listen()
