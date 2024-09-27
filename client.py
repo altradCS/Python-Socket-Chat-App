@@ -33,7 +33,7 @@ def start():
     """Start the client to send and receive messages."""
     answer = input('Would you like to connect (yes/no)? ')
     if answer.lower() != 'yes':
-        return
+        return 
 
     connection = connect()
 
@@ -54,4 +54,4 @@ def start():
     print('Disconnected')
 
 
-    start()
+start()
