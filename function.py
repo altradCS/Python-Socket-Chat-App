@@ -6,7 +6,8 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
-not_full_screen=True
+
+not_full_screen=False
 global client_to_sever
 
 
@@ -17,12 +18,14 @@ def get_img(img, width=20, height=20):
     return final
 def close_win(root):
     root.after(300, root.destroy())
-def minimize_window(root):
-    pass
+def minimize_window(root, top_win):
+    root.withdraw()
+def onRootDeiconify(root): 
+    root.deiconify()
 def maximize_win(master,root):
     global not_full_screen
     if not_full_screen:
-        root.geometry('900x450')
+        root.geometry('825x530')
         not_full_screen = False
     else:
         root.geometry(f'{root.winfo_screenwidth()}x{
@@ -32,29 +35,33 @@ def maximize_win(master,root):
 def create_new_frame(root,btn, frame_name, connection, user_image, image_send):
     start_time = time.time()
     apply_color(btn, root.side_frame)
-    # Only create the frame if it doesn't already exist
+    for a_frame in root.middle_frame.winfo_children():
+        a_frame.pack_forget()
     if frame_name not in root.frame_dict:
         temp_frame = ctk.CTkFrame(root.middle_frame, fg_color="#242424", corner_radius=0)
-        temp_frame.grid(row=0, column=0,padx=27, pady=2)
+        temp_frame.grid_columnconfigure(0, weight=1)
+        temp_frame.grid_rowconfigure(0, weight=1) 
+        temp_frame.grid_rowconfigure(1, weight=0)
         root.frame_dict[frame_name] = temp_frame
 
         # Add content inside the newly created frame
         display_text = ctk.CTkScrollableFrame(temp_frame, width=700, height=400, corner_radius=10, fg_color="#171717")
-        display_text.pack(pady=10)
+        display_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         display_text.grid_columnconfigure(1, weight=1)
         # display_text.grid_propagate(False)
         
         control_frame = ctk.CTkFrame(temp_frame)
-        control_frame.pack()
+        control_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        control_frame.grid_columnconfigure(1, weight=1)
         
         entry = ctk.CTkEntry(control_frame, width=300, height=35)
-        entry.grid(row=0, column=0)
+        entry.grid(row=0, column=0, columnspan=2, sticky="ew")
         
         send_to_server = ctk.CTkButton(control_frame, text="Send",image=image_send, compound=tk.LEFT,
                                font=("JetBrains Mono", 12),
                                command= lambda: display_send(connection, entry.get(), display_text, start_time, user_image),
                                height=30)
-        send_to_server.grid(row=0, column=1)
+        send_to_server.grid(row=0, column=2)
         
         threading.Thread(target=get_message, args=(display_text, connection,start_time,user_image)).start()
         
@@ -68,7 +75,7 @@ def apply_color(btn, frame):
     btn.configure(fg_color="#114AAF")
 
 def show_frame(frame):
-    frame.tkraise()
+    frame.pack(fill="both", expand=True)
 
 
 def get_message(frame, connection, start_time,user_image):
