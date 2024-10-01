@@ -2,7 +2,7 @@ import socket
 import time
 import threading
 
-PORT = 5050
+PORT = 8080
 SERVER = "localhost"
 ADDR = (SERVER, PORT)
 FORMAT = "utf-8"

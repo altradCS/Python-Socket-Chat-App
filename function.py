@@ -3,10 +3,13 @@ import customtkinter as ctk
 from client_origin import *
 import threading
 import tkinter as tk
+from tkinter import messagebox
+from PIL import Image, ImageTk
+
 not_full_screen=True
 global client_to_sever
 
-from PIL import Image, ImageTk
+
 def get_img(img, width=20, height=20):
     start_img = Image.open(img)
     start_resize = start_img.resize((width, height))
@@ -26,26 +29,14 @@ def maximize_win(master,root):
                       root.winfo_screenheight()}+0+0')
         not_full_screen = True
     
-def create_button(button):
-    button.config(text='',
-                  bg="#333333",
-                  activebackground="#114AAF",
-                  relief='flat',
-                  border=0,
-                  width=50,
-                  height=50,
-                  )
-    
-def create_new_frame(frame_dict, main_content, frame_name, connection, btn, side_frame, user_image, image_send):
+def create_new_frame(root,btn, frame_name, connection, user_image, image_send):
     start_time = time.time()
-    apply_color(side_frame, btn)
-
-
+    apply_color(btn, root.side_frame)
     # Only create the frame if it doesn't already exist
-    if frame_name not in frame_dict:
-        temp_frame = ctk.CTkFrame(main_content, fg_color="#242424", corner_radius=0)
+    if frame_name not in root.frame_dict:
+        temp_frame = ctk.CTkFrame(root.middle_frame, fg_color="#242424", corner_radius=0)
         temp_frame.grid(row=0, column=0,padx=27, pady=2)
-        frame_dict[frame_name] = temp_frame
+        root.frame_dict[frame_name] = temp_frame
 
         # Add content inside the newly created frame
         display_text = ctk.CTkScrollableFrame(temp_frame, width=700, height=400, corner_radius=10, fg_color="#171717")
@@ -69,7 +60,12 @@ def create_new_frame(frame_dict, main_content, frame_name, connection, btn, side
         
 
     # Bring the frame to the front
-    show_frame(frame_dict[frame_name])
+    show_frame(root.frame_dict[frame_name])
+
+def apply_color(btn, frame):
+    for button in frame.winfo_children():
+        button.configure(fg_color="#333333")
+    btn.configure(fg_color="#114AAF")
 
 def show_frame(frame):
     frame.tkraise()
@@ -85,23 +81,6 @@ def display_send(connection, message, frame, start_time,user_image):
     send(connection, message)
     if message:
         tk.Label(frame, image=user_image, text=f"You: {message}", font=("JetBrains Mono",15), compound=tk.LEFT,bg="#171717", fg="white").grid(row=row_positon, column =0, padx=10, sticky="w")
-
-def apply_color(master, button):
-    for widget in master.winfo_children():
-        if widget == button:
-            widget.configure(bg="#114AAF")
-            # widget.bind("<Leave>", lambda e: widget.config(bg="#114AAF"))
-        else:
-            # widget.bind("<Leave>", lambda e: widget.config(bg="#333333"))
-            widget.configure(bg="#333333")
-
-
-
-
-
-   
-    
-
 
 def move(event, window):
     x = window.winfo_x()-window.startX + event.x

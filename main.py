@@ -5,18 +5,19 @@ from tkinter import ttk
 from client_origin import *
 from tkinter import messagebox
 import random
+from PIL import Image, ImageTk
 # from client_origin import *
 class client_ui():
     def __init__(self,root):
         global close_img, maximize, minimize, menu_img, add,client_device,user_image, image_send
         self.number_of_client=0
         self.frame_dict = {}
-
+        self.buttons = {}
 
         
         menu_img = get_img("assets\icon_app.png", 40,40)
-        add =get_img("assets\icons8-plus-50.png",35,35)
-        client_device = get_img("assets/icons8-cloud-computing-50.png", 35,35)
+        add =ctk.CTkImage(Image.open("assets\icons8-plus-50.png"),size=(30,30))
+        client_device = ctk.CTkImage(Image.open("assets/icons8-cloud-computing-50.png"), size=(30,30))#get_img("assets/icons8-cloud-computing-50.png", 35,35)
         user_image = get_img("assets/icons8-user-48.png", 35, 35)
         image_send = get_img("assets/icons8-send-50.png",35,35)
 
@@ -27,7 +28,7 @@ class client_ui():
         self.root.overrideredirect(True)
         self.root.geometry("825x530")
         #title frame
-        self.top_bar = ctk.CTkFrame(self.root, fg_color="#333333", corner_radius=0)
+        self.top_bar = ctk.CTkFrame(self.root, fg_color="#242424", corner_radius=0, height=50)
         self.top_bar.grid(row=0, column=0, columnspan=2, sticky="nsew")
         self.top_bar.grid_columnconfigure(1, weight=1)
         #add side frame
@@ -36,7 +37,7 @@ class client_ui():
         #add middle frame
         self.middle_frame = ctk.CTkFrame(self.root, fg_color="#242424", corner_radius=0)
         self.middle_frame.grid(row=1, column=1, sticky="nsew")
-        self.menu = tk.Button(self.top_bar, text='ConnectedZ',
+        self.menu = tk.Button(self.top_bar,
                                 image= menu_img,
                                 bg="#333333",
                                 activebackground="#114AAF",
@@ -45,18 +46,18 @@ class client_ui():
                                 font=("Roboto mono", 12, "bold"),
                                 fg="white",
                                 compound=tk.LEFT,
-                                command=lambda: close_win(root))
+                                command=lambda: close_win(root),
+                                width=56,
+                                )
         self.menu.grid(row=0, column=0)
-        self.add_connection = tk.Button(self.side_frame, text='',
-                                image= add,
-                                bg="#333333",
-                                activebackground="#114AAF",
-                                relief='flat',
-                                border=0,
-                                width=50,
-                                height=50,
+        self.add_connection = ctk.CTkButton(self.side_frame,
+                                         text="",
+                                         fg_color="#333333",
+                                         hover_color="#114AAF",
+                                         width=40,
+                                         image=add,
+                                         compound=tk.LEFT,
                                 command=self.add_client_device
-                                
                                 )
         self.add_connection.grid(row=10, column=0)
         
@@ -70,7 +71,7 @@ class client_ui():
         minimize = get_img("assets/minus_white.png",30,30)
         self.close = tk.Button(self.title_frame, text='',
                                image= close_img,
-                               bg="#333333",
+                               bg="#242424",
                                activebackground="#333333",
                             
                             relief='flat',
@@ -80,7 +81,7 @@ class client_ui():
         self.close.grid(row=0, column=2)
         self.minimize = tk.Button(self.title_frame, text='',
                                   image=minimize,
-                                  bg="#333333",
+                                  bg="#242424",
                                   activebackground="#333333",
                                relief='flat',
                                border=0, width=30,
@@ -88,7 +89,7 @@ class client_ui():
         self.minimize.grid(row=0, column=0)
         self.maximize = tk.Button(self.title_frame, text='',
                                   image= maximize,
-                                  bg="#333333",
+                                  bg="#242424",
                                   activebackground="#333333",
                                relief='flat',
                                border=0, width=30,
@@ -98,37 +99,23 @@ class client_ui():
         self.prompt_label.pack(fill="none", expand=True)
     def add_client_device(self):
         self.prompt_label.destroy()
-        if self.number_of_client ==0:
-            connection = connect()
-            name = self.get_name()
-            connection.send(name.encode(FORMAT))
+    
+        connection = connect()
+        name = self.get_name()
+        connection.send(name.encode(FORMAT))
 
-            btn1=tk.Button(self.side_frame, image=client_device,command=lambda: create_new_frame(self.frame_dict, self.middle_frame, "frame1",connection,btn1,self.side_frame, user_image, image_send))
-            create_button(btn1)
-            btn1.grid(row=1,column=0)
-            # btn1.bind('<Enter>', lambda e: btn1.config(bg="#114AAF"))
-            # btn1.bind('<Leave>', lambda e: btn1.config(bg="#333333"))
-        elif self.number_of_client ==1:
-            connection = connect()
-            name = self.get_name()
-            connection.send(name.encode(FORMAT))
-
-            btn2=tk.Button(self.side_frame, image=client_device,command=lambda: create_new_frame(self.frame_dict, self.middle_frame, "frame2",connection,btn2,self.side_frame,user_image,image_send))
-            create_button(btn2)
-            btn2.grid(row=2,column=0)
-            # btn2.bind('<Enter>', lambda e: btn2.config(bg="#114AAF"))
-            # btn2.bind('<Leave>', lambda e: btn2.config(bg="#333333"))
-            
-        elif self.number_of_client ==2:
-            connection = connect()
-            name = self.get_name()
-            connection.send(name.encode(FORMAT))
-            
-            btn3 =tk.Button(self.side_frame, image=client_device,command=lambda: create_new_frame(self.frame_dict, self.middle_frame, "frame3",connection,btn3,self.side_frame,user_image, image_send))
-            create_button(btn3)
-            btn3.grid(row=3,column=0)
-            # btn3.bind('<Enter>', lambda e: btn3.config(bg="#114AAF"))
-            # btn3.bind('<Leave>', lambda e: btn3.config(bg="#333333"))
+        self.buttons[name]=ctk.CTkButton(self.side_frame,
+                                         text="",
+                                         fg_color="#333333",
+                                         hover_color="#114AAF",
+                                         width=40,
+                                         image=client_device,
+                                         compound=tk.LEFT,
+                                         
+                                         )
+        self.buttons[name].configure(command=lambda frame=self.number_of_client, name = self.buttons[name]: create_new_frame(self,name, f"frame {frame}",connection, user_image, image_send))
+        # create_button(self.buttons[name])
+        self.buttons[name].grid(row=self.number_of_client+1,column=0)
         self.number_of_client += 1
     def get_name(self):
         names = [
@@ -146,6 +133,7 @@ class client_ui():
         while True:
             choose=random.choice(names)
             if messagebox.askyesno("Name Suggestion", f"Do you want to be call as {choose}?"):
+                names.remove(choose)
                 return choose
 
         
