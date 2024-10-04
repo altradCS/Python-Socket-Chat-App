@@ -14,13 +14,16 @@ class client_ui():
         self.number_of_client=0
         self.frame_dict = {}
         self.buttons = {}
+        self.server_status = True
 
         
         menu_img = get_img("assets\icon_app.png", 40,40)
         add =ctk.CTkImage(Image.open("assets\icons8-plus-50.png"),size=(30,30))
         client_device = ctk.CTkImage(Image.open("assets/icons8-cloud-computing-50.png"), size=(30,30))#get_img("assets/icons8-cloud-computing-50.png", 35,35)
         user_image = get_img("assets/icons8-user-48.png", 35, 35)
-        image_send = get_img("assets/icons8-send-50.png",35,35)
+        image_send = ctk.CTkImage(Image.open("assets/icons8-send-50.png"),size=(30,30))
+        self.start_img = ctk.CTkImage(Image.open("assets\icons8-play-50.png"), size=(15,15))
+        self.stop_img = ctk.CTkImage(Image.open("assets\icons8-stop-50.png"), size=(15,15))
 
         self.root = root
         self.top_win = tk.Toplevel(window)
@@ -72,6 +75,21 @@ class client_ui():
         self.title_frame.grid(row=0, column=2)
 
 
+        #server button
+        self.server_button = ctk.CTkButton(self.title_frame,
+                                           image=self.start_img,
+                                           text="Start Server",
+                                           fg_color="#333333",
+                                           hover_color="#02733E",
+                                           border_color="#02733E",
+                                           border_width=2,
+                                           width=40,
+                                           font=("JetBrains Mono", 12,"bold"),
+                                           compound=tk.LEFT,
+                                           command=lambda: start_stop_server(self))
+        self.server_button.grid(row=0, column=0, sticky="w", padx=20)
+
+
         # get icons for control frame
         close_img = ctk.CTkImage(Image.open("assets/x.png"),size=( 25,26))
         maximize = ctk.CTkImage(Image.open("assets/maximize-2_white.png"),  size=(25,26))
@@ -84,7 +102,7 @@ class client_ui():
                                corner_radius=0,
                                command=lambda: close_win(root),
                                width=40)
-        self.close.grid(row=0, column=2)
+        self.close.grid(row=0, column=3)
         self.minimize = ctk.CTkButton(self.title_frame,
                                   image=minimize,
                                   fg_color="#333333",
@@ -93,7 +111,7 @@ class client_ui():
                                   text="",
                                   command=lambda: minimize_window(root, self.top_win),
                                   width=40)
-        self.minimize.grid(row=0, column=0)
+        self.minimize.grid(row=0, column=1)
         self.maximize = ctk.CTkButton(self.title_frame,
                                   image= maximize,
                                   fg_color="#333333",
@@ -102,32 +120,47 @@ class client_ui():
                                   text="",
                                   command=lambda: maximize_win(self,root),
                                   width=40)
-        self.maximize.grid(row=0, column=1)
+        self.maximize.grid(row=0, column=2)
         self.prompt_label = ctk.CTkLabel(self.middle_frame, text="Press + to connect to the server", font=("JetBrains Mono",20, "italic"))
         self.prompt_label.pack(fill="none", expand=True)
-    def add_client_device(self):
-        try:
-            self.prompt_label.destroy()
-        
-            connection = connect()
-            name = self.get_name()
-            connection.send(name.encode(FORMAT))
 
-            self.buttons[name]=ctk.CTkButton(self.side_frame,
-                                            text="",
-                                            fg_color="#333333",
-                                            hover_color="#114AAF",
-                                            width=40,
-                                            image=client_device,
-                                            compound=tk.LEFT,
-                                            
-                                            )
-            self.buttons[name].configure(command=lambda frame=self.number_of_client, name = self.buttons[name]: create_new_frame(self,name, f"frame {frame}",connection, user_image, image_send))
-            # create_button(self.buttons[name])
-            self.buttons[name].grid(row=self.number_of_client+1,column=0)
-            self.number_of_client += 1
-        except Exception as e:
-            messagebox.showerror("Error", f"Error: {e}")
+
+
+    def add_client_device(self):
+
+        self.prompt_label.destroy()
+        ask_info = ctk.CTkToplevel(self.root)
+        ask_info.title("Client Information")
+        ask_info.geometry("300x200")
+        name = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12))
+        name.pack(fill="x", expand=True)
+        email = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12))
+        email.pack(fill="x", expand=True)
+        password = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12))
+        password.pack(fill="x", expand=True)
+        submit = ctk.CTkButton(ask_info, text="Submit", font=("JetBrains Mono", 12), command=lambda: self.add_client(name.get(), email.get(), password.get(), ask_info))
+
+        submit.pack(fill="x", expand=True)
+    def add_client(self, name, email, password, ask_info):
+        
+        connection = connect()
+        connection.send(name.encode(FORMAT))
+
+        self.buttons[email]=ctk.CTkButton(self.side_frame,
+                                        text="",
+                                        fg_color="#333333",
+                                        hover_color="#114AAF",
+                                        width=40,
+                                        image=client_device,
+                                        compound=tk.LEFT,
+                                        
+                                        )
+        self.buttons[email].configure(command=lambda name = self.buttons[email]: create_new_frame(self,name, email,connection, user_image, image_send))
+        # create_button(self.buttons[name])
+        self.buttons[email].grid(row=self.number_of_client+1,column=0)
+        self.number_of_client += 1
+        ask_info.destroy()
+
     def get_name(self):
         names = [
         "Alice",
@@ -151,7 +184,7 @@ class client_ui():
 
     
 if __name__ == "__main__":
-    threading.Thread(target=server.start).start()
+    #threading.Thread(target=server.start).start()
     window = ctk.CTk()
     Ui =client_ui(window)
     Ui.top_bar.bind('<Button-1>', lambda e: origin_cords(e, window))

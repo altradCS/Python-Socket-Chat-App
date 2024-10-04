@@ -1,6 +1,7 @@
 import threading
 import socket
 import threading
+from tkinter import messagebox
 
 PORT = 8080
 SERVER = "localhost"
@@ -73,12 +74,31 @@ def broadcast_message(message, sender_conn):
         for c in clients:
             if c != sender_conn:  # Do not send the message back to the sender
                 c.sendall(f"Broadcast from {clients[sender_conn]}: {message}".encode(FORMAT))
-
+stop_server = False
 
 def start():
     print('[SERVER STARTED]! Waiting for connections...')
-    server.listen()
-    while True:
-        conn, addr = server.accept()
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
-        thread.start()
+    try:
+        server.listen()
+    except Exception:
+        pass
+    
+    while not stop_server:
+        try:
+            # Use a short timeout to check the flag periodically
+            server.settimeout(1)  # Check for new connections every 1 second
+            conn, addr = server.accept()
+            thread = threading.Thread(target=handle_client, args=(conn, addr))
+            thread.start()
+        except socket.timeout:
+            # Timeout is expected, just continue to check the stop flag
+            continue
+        except Exception:
+            pass
+
+def stop():
+    global stop_server
+    stop_server = True
+    messagebox.showinfo("Server Stopped", "The server has been stopped.")
+    server.close()  # Close the server when stopping
+
