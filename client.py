@@ -58,6 +58,14 @@ def start():
     if not connection:
         return
 
+    # Prompt the user for their name and email when connecting
+    name = input("Enter your name: ")
+    email = input("Enter your email: ")
+
+    # Send name and email to the server
+    send(connection, name)
+    send(connection, email)
+
     # Start receiving messages in a separate thread
     threading.Thread(target=receive_messages, args=(connection,), daemon=True).start()
 
