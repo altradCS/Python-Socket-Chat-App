@@ -17,13 +17,14 @@ class client_ui():
         self.server_status = True
 
         
-        menu_img = get_img("assets\icon_app.png", 40,40)
-        add =ctk.CTkImage(Image.open("assets\icons8-plus-50.png"),size=(30,30))
+        menu_img = get_img("assets/icon_app.png", 40,40)
+        add =ctk.CTkImage(Image.open("assets/icons8-plus-50.png"),size=(30,30))
         client_device = ctk.CTkImage(Image.open("assets/icons8-cloud-computing-50.png"), size=(30,30))#get_img("assets/icons8-cloud-computing-50.png", 35,35)
         user_image = get_img("assets/icons8-user-48.png", 35, 35)
         image_send = ctk.CTkImage(Image.open("assets/icons8-send-50.png"),size=(30,30))
-        self.start_img = ctk.CTkImage(Image.open("assets\icons8-play-50.png"), size=(15,15))
-        self.stop_img = ctk.CTkImage(Image.open("assets\icons8-stop-50.png"), size=(15,15))
+        self.start_img = ctk.CTkImage(Image.open("assets/icons8-play-50.png"), size=(15,15))
+        self.stop_img = ctk.CTkImage(Image.open("assets/icons8-stop-50.png"), size=(15,15))
+        self.disconnect_img = ctk.CTkImage(Image.open("assets/icons8-disconnect-50.png"), size=(30,30))
 
         self.root = root
         self.top_win = tk.Toplevel(window)
@@ -35,7 +36,7 @@ class client_ui():
         self.root.grid_columnconfigure(1, weight=1)
         self.root.title("Client")
         self.root.overrideredirect(True)
-        self.root.geometry("825x530")
+        self.root.geometry("825x540")
         #title frame
         self.top_bar = tk.Frame(self.root, bg="#333333", height=50)
         self.top_bar.grid(row=0, column=0, columnspan=2, sticky="nsew")
@@ -100,7 +101,7 @@ class client_ui():
                                fg_color="#333333",
                                hover_color="red",
                                corner_radius=0,
-                               command=lambda: close_win(root),
+                               command=lambda: close_win(root,self),
                                width=40)
         self.close.grid(row=0, column=3)
         self.minimize = ctk.CTkButton(self.title_frame,
@@ -131,58 +132,46 @@ class client_ui():
         self.prompt_label.destroy()
         ask_info = ctk.CTkToplevel(self.root)
         ask_info.title("Client Information")
-        ask_info.geometry("300x200")
-        name = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12))
-        name.pack(fill="x", expand=True)
-        email = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12))
-        email.pack(fill="x", expand=True)
-        password = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12))
-        password.pack(fill="x", expand=True)
-        submit = ctk.CTkButton(ask_info, text="Submit", font=("JetBrains Mono", 12), command=lambda: self.add_client(name.get(), email.get(), password.get(), ask_info))
+        ask_info.geometry("300x150")
+        ask_info.attributes('-topmost', 'true')
+        ctk.CTkLabel(ask_info, text="Enter: ", font=("JetBrains Mono", 12, "italic")).grid(row=0, column=0, sticky="w", padx=5)
+        name = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12), placeholder_text="Username", width=280)
+        name.grid(row=1, column =0, columnspan=2, pady=5, padx=10)
+        email = ctk.CTkEntry(ask_info, font=("JetBrains Mono", 12), placeholder_text="Email Address", width=280)
+        email.grid(row=2, column =0, columnspan=2, pady=5)
+        submit = ctk.CTkButton(ask_info, text="Connect", font=("JetBrains Mono", 12), command=lambda: self.add_client(name.get(), email.get(), ask_info), width=100)
+        submit.grid(row=3, column =0, pady=10, padx =2, columnspan=2)
 
-        submit.pack(fill="x", expand=True)
-    def add_client(self, name, email, password, ask_info):
-        
-        connection = connect()
-        connection.send(name.encode(FORMAT))
+    def add_client(self, name, email, ask_info):
+        permission = True
+        if server.clients:
+            for conn in server.clients:
+                if server.clients[conn]["username"] == name or server.clients[conn]["email"]==email:
+                    messagebox.showerror("Error!", "Username or Email is active! Try to use different username or email.")
+                    permission=False
+        if permission:
+            try:
+                connection = connect()
+                connection.send(f"{name},{email}".encode(FORMAT))
 
-        self.buttons[email]=ctk.CTkButton(self.side_frame,
-                                        text="",
-                                        fg_color="#333333",
-                                        hover_color="#114AAF",
-                                        width=40,
-                                        image=client_device,
-                                        compound=tk.LEFT,
-                                        
-                                        )
-        self.buttons[email].configure(command=lambda name = self.buttons[email]: create_new_frame(self,name, email,connection, user_image, image_send))
-        # create_button(self.buttons[name])
-        self.buttons[email].grid(row=self.number_of_client+1,column=0)
-        self.number_of_client += 1
-        ask_info.destroy()
-
-    def get_name(self):
-        names = [
-        "Alice",
-        "Bob",
-        "Charlie",
-        "David",
-        "Eve",
-        "Frank",
-        "Grace",
-        "Heidi",
-        "Ivan",
-        "Judy"
-        ]
-        while True:
-            choose=random.choice(names)
-            if messagebox.askyesno("Name Suggestion", f"Do you want to be call as {choose}?"):
-                names.remove(choose)
-                return choose
-
-
-
-    
+                self.buttons[email]=ctk.CTkButton(self.side_frame,
+                                                text="",
+                                                fg_color="#333333",
+                                                hover_color="#114AAF",
+                                                width=40,
+                                                image=client_device,
+                                                compound=tk.LEFT,
+                                                
+                                                )
+                self.buttons[email].configure(command=lambda name = self.buttons[email]: create_new_frame(self,name, email,connection, user_image, image_send))
+                # create_button(self.buttons[name])
+                self.buttons[email].grid(row=self.number_of_client+1,column=0)
+                self.number_of_client += 1
+                ask_info.destroy()
+            except ConnectionRefusedError:
+                messagebox.showerror("Error!", "Server is offline! Make sure the server is running.")
+                ask_info.destroy()
+                
 if __name__ == "__main__":
     #threading.Thread(target=server.start).start()
     window = ctk.CTk()

@@ -21,27 +21,27 @@ class custom_frame(ctk.CTkFrame):
         self.grid_rowconfigure(1, weight=0)
         # Add content inside the newly created frame
         self.display_text = ctk.CTkScrollableFrame(self, width=700, height=400, corner_radius=10, fg_color="#171717")
-        self.display_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.display_text.grid(row=0, column=0, padx=10,pady=10, sticky="nsew")
         self.display_text.grid_columnconfigure(1, weight=1)
         # display_text.grid_propagate(False)
         
-        control_frame = ctk.CTkFrame(self)
-        control_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        control_frame = ctk.CTkFrame(self, fg_color="#242424", corner_radius=10)
+        control_frame.grid(row=1, column=0, sticky="nsew", padx=10)
         control_frame.grid_columnconfigure(1, weight=1)
         
         entry = ctk.CTkEntry(control_frame, width=300, height=35)
-        entry.grid(row=0, column=0, columnspan=2, sticky="ew")
+        entry.grid(row=0, column=0, columnspan=2, sticky="ew", pady=10)
         
         send_to_server = ctk.CTkButton(control_frame, text="Send",image=image_send, compound=tk.LEFT,
                                font=("JetBrains Mono", 12),
                                command= lambda: display_send(self.connection, entry.get(), self.display_text, start_time, user_image),
-                               width=40,)
-        send_to_server.grid(row=0, column=2)
+                               width=40,fg_color="black", hover="black", corner_radius=20)
+        send_to_server.grid(row=0, column=2, padx=5)
         
-        disconnect_btn = ctk.CTkButton(control_frame, text="Send",image=image_send, compound=tk.LEFT,
+        disconnect_btn = ctk.CTkButton(control_frame, text="disconnect",image=root.disconnect_img, compound=tk.LEFT,
                                font=("JetBrains Mono", 12),
                                command= lambda: (self.pack_forget(),self.btn.grid_forget(), send(self.connection, DISCONNECT_MESSAGE)),
-                               width=40,)
+                               width=40,fg_color="black", hover="black", corner_radius=20)
         disconnect_btn.grid(row=0, column=3)
         
         
@@ -54,7 +54,9 @@ def get_img(img, width=20, height=20):
     start_resize = start_img.resize((width, height))
     final = ImageTk.PhotoImage(start_resize)
     return final
-def close_win(root):
+def close_win(root, master):
+    master.server_status = False
+    start_stop_server(master, closing=True)
     root.after(300, root.destroy())
 def minimize_window(root, top_win):
     root.withdraw()
@@ -63,7 +65,7 @@ def onRootDeiconify(root):
 def maximize_win(master,root):
     global not_full_screen
     if not_full_screen:
-        root.geometry('825x530')
+        root.geometry('{}x{}+{}+{}'.format(825,540, root.winfo_screenwidth()//2-900//2, root.winfo_screenheight()//2-600//2))
         not_full_screen = False
     else:
         root.geometry(f'{root.winfo_screenwidth()}x{
@@ -104,7 +106,6 @@ def get_message(frame, connection, start_time, user_image):
             message = connection.recv(2048)
             
             if not message:
-                # If no data is received, it means the connection is closed
                 break
 
             decoded_message = message.decode("utf-8")
@@ -114,16 +115,19 @@ def get_message(frame, connection, start_time, user_image):
             tk.Label(frame, image=user_image, text=" " + decoded_message, font=("JetBrains Mono", 15), 
                      compound=tk.RIGHT, bg="#171717", fg="white").grid(row=row_position, column=2, padx=10, sticky="e")
         except (ConnectionResetError, socket.error):
-            # Silently handle connection reset or socket errors
             break
         except Exception:
-            # Silently handle any other exceptions
             break
 def display_send(connection, message, frame, start_time,user_image):
     row_positon = int(time.time()-start_time)
     send(connection, message)
     if message:
-        tk.Label(frame, image=user_image, text=f"You: {message}", font=("JetBrains Mono",15), compound=tk.LEFT,bg="#171717", fg="white").grid(row=row_positon, column =0, padx=10, sticky="w")
+        ms_contents = message.split(":")
+        if len(ms_contents) == 2:
+            tk.Label(frame, image=user_image, text=f"You DM to {ms_contents[0]}: {ms_contents[1]}", font=("JetBrains Mono",15), compound=tk.LEFT,bg="#171717", fg="white").grid(row=row_positon, column =0, padx=10, sticky="w")
+
+        else:
+            tk.Label(frame, image=user_image, text=f"You: {message}", font=("JetBrains Mono",15), compound=tk.LEFT,bg="#171717", fg="white").grid(row=row_positon, column =0, padx=10, sticky="w")
 
 def move(event, window):
     x = window.winfo_x()-window.startX + event.x
@@ -133,7 +137,7 @@ def move(event, window):
 def origin_cords(event, window):
     window.startX = event.x
     window.startY = event.y
-def start_stop_server(root):
+def start_stop_server(root, closing=False):
     global server_stop_flag
     if root.server_status:
 
@@ -158,5 +162,5 @@ def start_stop_server(root):
                                            width=40,
                                            font=("JetBrains Mono", 12,"bold"),
                                            compound=tk.LEFT)
-        server.stop()
+        server.stop(closing)
         root.server_status = True
